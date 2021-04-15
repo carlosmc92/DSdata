@@ -189,8 +189,6 @@ datatotal.dropna(inplace=True)
 datatotal=datatotal.drop(datatotal[datatotal['category']=='OTHER'].index)
 datatotal.drop(['category'],axis= 'columns', inplace=True)
 
-###YESSSS!!! SE IMPORTAN TODOS LOS ARCHIVOS Y ASI TERMINA EL SCRIPT, AL QUE LO USE, ESPERO LO SEPAS APRECIAR#
-###TIENE TECNOLOGÍAS QUE JAMÁS VAS A ENTENDER NI PODER IMPLEMENTAR, HAY QUE ESTUDIAR ;)#####
 datatotal.to_excel(ruta_3.format('Cencosud_Invent_AV'+'_'+year+'_'+week+'.xlsx'), index=False)
 DataTrash.to_excel(ruta_3.format('DataTrash_AV'+'_'+year+'_'+week+'.xlsx','ean'), index=False)
-#DataTrash_2.to_excel(ruta_3+'DataTrash_'+'_'+year+'_'+week+'.xlsx', 'pos')
+
