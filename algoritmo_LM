@@ -1,0 +1,69 @@
+# -*- coding: utf-8 -*-
+
+#=============================================================================
+# Autores ->Alyona Carolina Ivanova Araujo   mcordornez@javeriana.edu.co
+#           Orlando Abaunza Ubaque           abaunzao@javeriana.edu.co
+#           Carlos Eduardo Martínez Cuéllar  ce_martinezc@javeriana.edu.co
+#=============================================================================
+# 
+#                       ALGORITMO LEVENBERG-MARQUARDT
+#
+#=============================================================================
+import numpy as np
+import matplotlib.pyplot as plt
+# import random
+# import math
+
+#-----------------------------------------------------------------------------
+n = 100                                     # número de iteraciones
+h = np.linspace(0,4,n)                          
+A, B, C = 2,3,4                             # Estimación incial
+y = (A - B * h) * np.exp(-C * h)            # Función del modelo a implementar
+# y = np.array(y)
+J = np.array(np.zeros((n,3)))               #Matriz Jacobiana incializada en 0
+W = np.eye(len(h))                          #Matriz de pesos, matriz identidad
+lamb = 1e-2
+
+#-----------------------------------------------------------------------------
+
+def _jacobian():
+    for i in range(0,n):                            # Componentes de jacobiano
+        J[:,0] = np.exp(-C * h)                     # dy/dA
+        J[:,1] = h * np.exp(-C * h)                 # dy/dB
+        J[:,2] = (A + B * h) * (-h) * np.exp(-C*h)  # dy/dC
+    return J
+        
+d_J = _jacobian()
+
+r = y - (A + B * h) * (-h) * np.exp(-C*h)       #Y_estimado - Y_observado
+
+#-----------------------------------------------------------------------------
+                                                #(J' * W * J + lambda * diag(J' * W * J))
+
+Q=np.dot(np.dot(d_J.T,W),d_J)                   # Q=diag(J'*W*J)
+Q[0,0]=Q[0,0]*(1+lamb)                          # [Q]= J'WJ+lambda diag(Q)
+Q[1,1]=Q[1,1]*(1+lamb)
+Q[2,2]=Q[2,2]*(1+lamb)
+
+delta=np.dot(np.dot(np.dot(np.linalg.inv(Q), d_J.T),W),r.T)   # 1/[Q] *J'*W*ri'
+    
+a=A+delta[0]                                    # a estimado
+b=B+delta[1]                                    # b estimado
+c=C+delta[2]                                    # c estimado
+
+#-----------------------------------------------------------------------------
+
+he = np.linspace(0,4,100)                       #100 valores de t, para generar una curva suave
+y_e = ( a +b * he ) * np.exp(-c * he)           #y estimado
+
+plt.style.use('ggplot')                         #Tipo de gráfico
+plt.figure(figsize=(20,10))                     #tamaño del gráfico ancho x alto
+plt.plot(h, y, 'o', label='observado')          #gráfico para Y observado   puntos
+plt.plot(he,y_e, '-', label='modelo')           #gráfico para y_estimado    linea
+plt.xlabel('tiempo')                            #eje x
+plt.ylabel('y')                                 #eje y
+plt.title('Levenberg Marquadt')                 #título
+plt.legend()                                    #mostrar referencias
+plt.savefig("regresion.png")                    #guardar el gráfico en una imagen .png  
+print('A:',a,'   B:',b,'   C:',c)            
+#-----------------------------------------------------------------------------
