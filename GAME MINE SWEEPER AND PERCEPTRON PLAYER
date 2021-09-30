@@ -1,0 +1,453 @@
+#TALLER_2 MINE SWEEPER BOARD AND PERCEPTRON PLAYER
+
+#En este caso el proceso para desarrollar el perceptrón consistió en anexar 3 diferentes set de datos
+#con el fin de examinar los patrones de juego del percetrón, en este caso, fueron bases de datos de 30,
+#300 y 3000 registros. Esto con el fin de encontrar los pesos en la regresión logística y anexarlos al
+#percetrón.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# MINE SWEEPER BOARD
+
+## =========================================================================
+## @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
+## =========================================================================
+
+import random
+
+'''
+'''
+class MineSweeperBoard:
+
+  '''
+  '''
+  m_Patches = None
+  m_Mines = None
+  m_NumberOfMines = 0
+  m_Explosion = False
+
+  '''
+  '''
+  def __init__( self, w, h, n ):
+    self.m_Patches = [ [ False for j in range( h ) ] for i in range( w ) ]
+    self.m_Mines = [ [ 0 for j in range( h ) ] for i in range( w ) ]
+    self.m_NumberOfMines = n
+    self.m_Explosion = False
+
+    # Choose positions for mines
+    t = [ i for i in range( w * h ) ]
+    random.shuffle( t )
+    for i in t[ 0: n ]:
+      self.m_Mines[ int( i / w ) ][ i % w ] = 9
+    # end for
+
+    # Fill remaining cells
+    for i in range( len( self.m_Mines ) ):
+      for j in range( len( self.m_Mines[ i ] ) ):
+        if self.m_Mines[ i ][ j ] == 0:
+          for k in range( i - 1, i + 2 ):
+            if k >= 0 and k < len( self.m_Mines ):
+              for l in range( j - 1, j + 2 ):
+                if l >= 0 and l < len( self.m_Mines[ j ] ):
+                  if self.m_Mines[ k ][ l ] == 9:
+                    self.m_Mines[ i ][ j ] += 1
+                  # end if
+                # end if
+              # end for
+            # end if
+          # end for
+        # end if
+      # end for
+    # end for
+
+  # end def
+
+  '''
+  '''
+  def __str__( self ):
+    s = "    "
+    for k in range( len( self.m_Mines ) ):
+      s += "+---"
+    # end for
+    s += "+\n    "
+    for k in range( len( self.m_Mines ) ):
+      s += "| " + chr( ord( '1' ) + k ) + " "
+    # end for
+    s += "|\n"
+    for j in range( len( self.m_Mines[ 0 ] ) ):
+      for k in range( len( self.m_Mines ) + 1 ):
+        s += "+---"
+      # end for
+      s += "+\n"
+      s += "| " + chr( ord( 'A' ) + j ) + " "
+      for i in range( len( self.m_Mines ) ):
+        s += "| "
+        if self.m_Patches[ i ][ j ]:
+            if self.m_Mines[ i ][ j ] < 9:
+              s += str( self.m_Mines[ i ][ j ] )
+            else:
+              s += "X"
+            # end if
+        else:
+            s += " "
+        # end if
+        s += " "
+      # end for
+      s += "|\n"
+    # end for
+    for k in range( len( self.m_Mines ) + 1 ):
+      s += "+---"
+    # end for
+    s += "+\n"
+    return s
+  # end def
+
+  '''
+  '''
+  def __repr__( self ):
+    return self.__str__( )
+  # end def
+
+  '''
+  '''
+  def width( self ):
+    return len( self.m_Mines )
+  # end def
+
+  '''
+  '''
+  def number_of_mines( self ):
+    return self.m_NumberOfMines
+  # end def
+
+  '''
+  '''
+  def height( self ):
+    if len( self.m_Mines ) > 0:
+      return len( self.m_Mines[ 0 ] )
+    else:
+      return 0
+    # end if
+  # end def
+
+  '''
+  '''
+  def have_won( self ):
+    c = 0
+    for i in range( len( self.m_Mines ) ):
+      for j in range( len( self.m_Mines[ i ] ) ):
+        if not self.m_Patches[ i ][ j ]:
+          c += 1
+        # end if
+      # end for
+    # end for
+    return c == self.m_NumberOfMines
+  # end def
+
+  '''
+  '''
+  def have_lose( self ):
+    return self.m_Explosion
+  # end def
+
+  '''
+  '''
+  def click( self, i, j ):
+    if not self.m_Explosion:
+      if i < 0 or j < 0 or i >= self.width( ) or j >= self.height( ):
+        return 0
+      else:
+        if not self.m_Patches[ i ][ j ]:
+          self.m_Patches[ i ][ j ] = True
+        # end if
+        if self.m_Mines[ i ][ j ] == 9:
+          self.m_Explosion = True
+          self.m_Patches = [ [ True for j in range( self.height( ) ) ] for i in range( self.width( ) ) ]
+        # end if
+        return self.m_Mines[ i ][ j ]
+      # end if
+    else:
+      return self.m_Mines[ i ][ j ]
+    # end if
+  # end def
+
+# end class
+
+## eof - $RCSfile$
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# TEST LOGISTIC 
+
+## =========================================================================
+## @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
+## =========================================================================
+
+import math, numpy, sys
+import matplotlib.pyplot as plot
+
+
+## ------------------------------------------------------------------------
+def LogisticSigmoid(z):
+    return 1.0 / (1.0 + numpy.exp(-z))
+
+
+# end def
+
+## ------------------------------------------------------------------------
+def LogisticFunction(w, b, x):
+    return LogisticSigmoid((x @ w.T) + b)
+
+
+# end def
+
+## ------------------------------------------------------------------------
+def LogisticHypothesis(w, b, x):
+    z = LogisticFunction(w, b, x)
+    if z.sum() < 0.5:
+        return 0
+    else:
+        return 1
+    # end if
+
+
+# end def
+
+## -------------------------------------------------------------------------
+'''
+'''
+
+
+class MaximumLikelihood:
+    '''
+  '''
+
+    def __init__(self, in_X, in_y):
+        assert isinstance(in_X, (list, numpy.matrix, numpy.ndarray)), "Invalid X type."
+        assert isinstance(in_y, (list, numpy.matrix, numpy.ndarray)), "Invalid y type."
+
+        if type(in_X) is list:
+            self.m_X = numpy.matrix(in_X)
+        else:
+            self.m_X = in_X
+        # end if
+        if type(in_y) is list:
+            self.m_y = numpy.matrix(in_y).T
+        else:
+            self.m_y = in_y
+        # end if
+        assert self.m_X.shape[0] == self.m_y.shape[0], "Invalid X,y sizes."
+        assert self.m_y.shape[1] == 1, "Invalid y size."
+
+        self.m_M = self.m_X.shape[0]
+        self.m_N = self.m_X.shape[1]
+
+        self.m_Xby = (numpy.array(self.m_X) * numpy.array(self.m_y)).mean(axis=0)
+        self.m_uy = self.m_y.mean()
+
+    # end def
+
+    def NumberOfExamples(self):
+        return self.m_M
+
+    # end def
+
+    def VectorSize(self):
+        return self.m_N
+
+    # end def
+
+    '''
+  '''
+
+    def CostAndDerivatives(self, theta):
+        b = theta[:, 0]
+        w = theta[:, 1:]
+
+        z = LogisticFunction(w, b, self.m_X)
+        p = numpy.log(z[self.m_y[:, 0] == 1, :] + 1e-8).sum()
+        n = numpy.log(1 - z[self.m_y[:, 0] == 0, :] + 1e-8).sum()
+        J = -(p + n) / self.m_M
+        dw = numpy.matrix((numpy.array(self.m_X) * numpy.array(z)).mean(axis=0) - self.m_Xby)
+        db = numpy.matrix(z.mean(axis=0) - self.m_uy)
+
+        return [J, numpy.concatenate((db, dw), axis=1)]
+    # end def
+
+
+# end class
+
+## -------------------------------------------------------------------------
+def GradientDescent(cost_function, **kwargs):
+    a = 1e-1
+    I = 1e10
+    e = 1e-8
+    ds = 100
+    df = None
+    n = cost_function.VectorSize()
+    t = numpy.random.rand(1, n) * 1e-1
+
+    if 'learning_rate' in kwargs: a = float(kwargs['learning_rate'])
+    if 'maximum_iterations' in kwargs: I = int(kwargs['maximum_iterations'])
+    if 'epsilon' in kwargs: e = float(kwargs['epsilon'])
+    if 'debug_step' in kwargs: ds = int(kwargs['debug_step'])
+    if 'debug_function' in kwargs: df = kwargs['debug_function']
+    if 'init_theta' in kwargs:
+        t0 = kwargs['init_theta']
+        if isinstance(t0, (int, float)):
+            t = numpy.ones((1, n + 1)) * float(t0)
+        elif isinstance(t0, list):
+            t = numpy.matrix(t0)
+        elif isinstance(t0, numpy.matrix):
+            t = t0
+        # end if
+    # end if
+
+    # Init loop
+    [J, dt] = cost_function.CostAndDerivatives(t)
+    dJ = math.inf
+    i = 0
+    while dJ > e and i < I:
+
+        # Step forward
+        t -= dt * a
+        [Jn, dt] = cost_function.CostAndDerivatives(t)
+        dJ = J - Jn
+        J = Jn
+        i += 1
+
+        # Debug
+        if df != None:
+            df(J, dJ, t, i, i % ds == 0)
+        # end if
+
+    # end while
+
+    return (t, i)
+
+
+# end def
+
+## ------------------------------------------------------------------------
+def maximum_likelihood_debug(J, dJ, t, i, show):
+    if show:
+        #print('J =', J, 'dJ =', dJ, 't =', t, 'i =', i)
+        print( 't =', t,'dJ =', dJ,'J =', J)
+    # end if
+
+
+# end def
+
+## ------------------------------------------------------------------------
+if len(sys.argv) < 2:
+    print('Usage: python ' + sys.argv[0] + ' csv')
+    sys.exit(1)
+# end if
+
+## -- Read data
+D = numpy.loadtxt(open(sys.argv[1], 'rb'), delimiter=',')
+numpy.random.shuffle(D)
+
+## -- Separate X and y
+X = D[:, 0: 8]
+y = D[:, 8:]
+
+cost = MaximumLikelihood(X, y)
+
+[theta, iterations] = GradientDescent(
+    cost,
+    learning_rate=1e-2,
+    maximum_iterations=20000,
+    epsilon=1e-8,
+    debug_step=2000,
+    debug_function=maximum_likelihood_debug,
+    init_theta=0
+)
+b = theta[:, 0]
+w = theta[:, 1:]
+print("b: ", b)
+print("w: ", w)
+#print(LogisticHypothesis(w, b, [50, 450]))
+#print(LogisticHypothesis(w, b, [1, 1, 1, 1, 1, 1, 1, 1]))
+
+## -- Plot data
+
+## eof - $RCSfile$
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#PLAYER PERCEPTRON
+
+import os, sys
+sys.path.append( os.path.join( os.getcwd( ), '../../../lib/python3' ) )
+import random
+#import lib.python3.PUJ.Model.Logistic
+import PUJ.Model.Logistic
+from MineSweeperBoard import *
+
+if len( sys.argv ) < 4:
+  print( "Usage: python", sys.argv[ 0 ], "width height mines" )
+  sys.exit( 1 )
+# end if
+w = int( sys.argv[ 1 ] )
+h = int( sys.argv[ 2 ] )
+m = int( sys.argv[ 3 ] )
+board = MineSweeperBoard( w, h, m )
+
+# Creamos el modelo logistico, con los valores entrenador mediante la regresion logistica y los datos de entrada en el archivo csv
+
+#model = PUJ.Model.Logistic([-0.48402869, 1.20565148, -0.91753345, -0.40335724 ,-1.43170965 , 1.20565148, -0.08067145 ,-0.48402869], 1)
+#model =-0.08067145, -0.48402869 , 1.20565148, -0.91753345 ,-0.40335724 -1.43170965, 1.20565148 ,-0.08067145 ,-0.48402869
+model = PUJ.Model.Logistic([-0.48402869, 1.20565148, -0.91753345, -0.40335724 ,-1.43170965 , 1.20565148, -0.08067145 ,-0.48402869], -0.08067145)
+#model = PUJ.Model.Logistic( [ random.randint(-10, 10) for i in range( 8 ) ], random.randint(-10, 10) )
+print("El modelo: model. ", model)
+patches = [ [9 for j in range( h )] for i in range( w )]
+#print(patches)
+#print( model([1, 2, 3, 4, 5, 6 ,7 ,8], threshold = False))
+neightbours = [
+  [-1, -1],
+  [-1,  0],
+  [-1,  1],
+  [ 0,  1],
+  [ 1,  1],
+  [ 1,  0],
+  [ 1, -1],
+  [ 0, -1]
+  ]
+num_clicks = 0
+while not board.have_won( ) and not board.have_lose( ):
+  print( board )
+  max_c = -1 # Nunca va a "pasar, ya que el calculo de la sigmoide esta entre 0 y 1
+  max_i = -1
+  max_j = -1
+  for i in range( w ):
+    for j in range( h ):
+      if patches[ i ][ j ] == 9:
+        x = []
+        for n in neightbours:
+          n_i = i + n[0]
+          n_j = j + n[1]
+          if n_i < 0 or n_j < 0 or n_i >=  w or n_j >= h:
+            x += [9]
+          else:
+            x += [ patches[ n_i ][ n_j ]] # justtt thattt !!!!!!!!!!!!!!!!!
+          #end if
+        #end for
+        c = model(x, threshold = False ) # model.logistic ( datos, sesgo)| retorna valores asignados al sigmoide
+       # print("c: ", c)
+        if c > max_c:
+          print("c: (",c,") mayor a max_c: (",max_c,")")
+          max_c = c
+          max_i = i
+          max_j = j
+          print("Click en: i",max_i + 1," j: ",j + 1)
+  num_clicks += 1
+  patches[ max_i][ max_j ] = board.click( max_j, max_i)  #verificar que si sea columna - fila
+# end while
+if board.have_won( ):
+  print(board)
+  print( "You won!" )
+  print("Numero de casillas destapadas: ", num_clicks)
+elif board.have_lose( ):
+  print(board)
+  print( "You lose :-(" )
+  print("Numero de casillas destapadas: ", num_clicks)
+# end if
+
+## eof - $RCSfile$
