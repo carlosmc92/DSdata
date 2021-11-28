@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Nov 25 09:07:22 2021
-
-@author: 2099791
-"""
-
+#=============================================================================
+#
+#      Autor: Carlos Martinez Cuellar - Alyona Ivanova Araujo
+#
+#=============================================================================
 # import random 
 import pandas as pd
 import numpy
