@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Nov 22 17:09:56 2021
-
-@author: 2099791
-"""
 #=============================================================================
 #
 #       Autor: Carlos Martínez Cuéllar - Alyona Ivanova Araujo
