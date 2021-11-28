@@ -1,0 +1,206 @@
+#=============================================================================
+#
+#           Autor: Carlos Martinez Cuellar - Alyona Ivanova Araujo
+#
+#============================================================================
+
+import pandas as pd
+import numpy
+from sklearn.ensemble import BaggingClassifier
+from sklearn.metrics import classification_report, confusion_matrix, f1_score
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import train_test_split
+
+data = pd.read_csv('age_gender.csv', sep = ';')
+data = numpy.array(data)
+
+numpy.random.shuffle(data)
+
+X1 = data[:,0:576]
+X2 = data[:,577:1152]
+X3 = data[:,1152:1728]
+X4 = data[:,1728:2304]
+ 
+y = data[:,-1]  #genero
+y2 = data[:,-2] # etnia
+
+
+
+#=============================================================================
+#Entrenamiento
+
+X_train1, X_test1, y_train1, y_test1 = train_test_split(X1, y)
+X_train2, X_test2, y_train2, y_test2 = train_test_split(X2, y)
+X_train3, X_test3, y_train3, y_test3 = train_test_split(X3, y2)
+X_train4, X_test4, y_train4, y_test4 = train_test_split(X4, y2)
+
+#=============================================================================
+
+# model1 genero
+
+model1 = MLPClassifier(activation = 'identity',
+                       solver = 'adam',
+                       alpha = 1e-6,
+                       hidden_layer_sizes = (3,),
+                       random_state = 1,
+                       learning_rate_init = 1e-2, #entre menor sea LR mayor accuracy
+                       batch_size = 1,
+                       tol = 1e-4,)
+
+modelb1 = BaggingClassifier(
+    base_estimator = model1,
+    n_estimators = 4,
+    max_samples = 0.8,
+#    oob_score = True,
+    random_state = 0
+    )
+
+modelb1.fit(X_train1, y_train1)
+pred_m1 = modelb1.predict(X_test1)
+conf_m1 = confusion_matrix(y_test1, pred_m1)
+clasf_m1 = classification_report(y_test1, pred_m1)
+fscore1 = f1_score(y_test1, pred_m1)
+
+#=============================================================================
+
+# model2 genero
+
+model2 = MLPClassifier(activation = 'relu',
+                       solver = 'adam',
+                       alpha = 1e-4,
+                       hidden_layer_sizes = (2,),
+                       random_state = 1,
+                       learning_rate_init = 1e-6, #entre menor sea LR mayor accuracy
+                       batch_size = 5,
+                       tol = 1e-4,)
+
+modelb2 = BaggingClassifier(
+    base_estimator = model2,
+    n_estimators = 4,
+    max_samples = 0.8,
+#    oob_score = True,
+    random_state = 0
+    )
+
+modelb2.fit(X_train2, y_train2)
+pred_m2 = modelb2.predict(X_test2)
+conf_m2 = confusion_matrix(y_test2, pred_m2)
+clasf_m2 = classification_report(y_test2, pred_m2)
+fscore2 = f1_score(y_test2, pred_m2)
+#=============================================================================
+
+#model3 genero
+
+model3 = MLPClassifier(activation = 'tanh',
+                       solver = 'adam',
+                       alpha = 1e-2,
+                       hidden_layer_sizes = (3,),
+                       random_state = 1,
+                       learning_rate_init = 1e-8, #entre menor sea LR mayor accuracy
+                       batch_size = 10,
+                       tol = 1e-4,)
+
+modelb3 = BaggingClassifier(
+    base_estimator = model3,
+    n_estimators = 4,
+    max_samples = 0.8,
+#    oob_score = True,
+    random_state = 0
+    )
+
+modelb3.fit(X_train3, y_train3)
+pred_m3 = modelb3.predict(X_test3)
+conf_m3 = confusion_matrix(y_test3, pred_m3)
+clasf_m3 = classification_report(y_test3, pred_m3)
+fscore3 = f1_score(y_test3, pred_m3, average = 'micro')
+
+#=============================================================================
+
+#model4 genero
+
+model4 = MLPClassifier(activation = 'logistic',
+                       solver = 'adam',
+                       alpha = 1e-2,
+                       hidden_layer_sizes = (1,),
+                       random_state = 1,
+                       learning_rate_init = 1e-4, #entre menor sea LR mayor accuracy
+                       batch_size = 5,
+                       tol = 1e-4,)
+
+modelb4 = BaggingClassifier(
+    base_estimator = model4,
+    n_estimators = 4,
+    max_samples = 0.8,
+#    oob_score = True,
+    random_state = 0
+    )
+
+modelb4.fit(X_train4, y_train4)
+pred_m4 = modelb4.predict(X_test4)
+conf_m4 = confusion_matrix(y_test4, pred_m4)
+clasf_m4 = classification_report(y_test4, pred_m4)
+fscore4 = f1_score(y_test4, pred_m4, average = 'micro')
+
+print('======================================================================')
+print('\n')
+print('Score train :', modelb1.score(X_train1, y_train1))      
+print('======================================================================')
+print('\n')
+print('Matriz de confusión :', conf_m1)
+print('======================================================================')
+print('\n')
+print('Metricas de la red :', clasf_m1)
+print('======================================================================')
+print('\n')
+print('F Score :', fscore1)
+print('======================================================================')
+print('\n')
+print('Score test :', modelb1.score(X_test1, y_test1))  
+
+print('======================================================================')
+print('\n')
+print('Score train :', modelb2.score(X_train2, y_train2))      
+print('======================================================================')
+print('\n')
+print('Matriz de confusión :', conf_m2)
+print('======================================================================')
+print('\n')
+print('Metricas de la red :', clasf_m2)
+print('======================================================================')
+print('\n')
+print('F Score :', fscore2)
+print('======================================================================')
+print('\n')
+print('Score test :', modelb2.score(X_test2, y_test2))  
+
+print('======================================================================')
+print('\n')
+print('Score train :', modelb3.score(X_train3, y_train3))      
+print('======================================================================')
+print('\n')
+print('Matriz de confusión :', conf_m3)
+print('======================================================================')
+print('\n')
+print('Metricas de la red :', clasf_m3)
+print('======================================================================')
+print('\n')
+print('F Score :', fscore3)
+print('======================================================================')
+print('\n')
+print('Score test :', modelb3.score(X_test3, y_test3))  
+
+print('======================================================================')
+print('\n')
+print('Score train :', modelb4.score(X_train4, y_train4))      
+print('======================================================================')
+print('\n')
+print('Matriz de confusión :', conf_m4)
+print('======================================================================')
+print('\n')
+print('Metricas de la red :', clasf_m4)
+print('======================================================================')
+print('\n')
+print('F Score :', fscore4)
+print('======================================================================')
+print('\n')
+print('Score test :', modelb4.score(X_test4, y_test4))  
